@@ -14,7 +14,7 @@ else
 	BINSUFFIX := ""
 endif
 
-# Supported OSes: linux darwin windows
+# Supported OSes: linux darwin windowshttps://github.com/mozilla/mig/blob/9b5f10da83268d512d9d22f7222448623f874580/Makefile
 # Supported ARCHes: 386 amd64
 OS			:= $(shell uname -s| tr '[:upper:]' '[:lower:]')
 ARCH		:= amd64
@@ -234,6 +234,22 @@ else
 	hdiutil makehybrid -hfs -hfs-volume-name "Mozilla InvestiGator Clients" \
 		-o ./mig-clients-$(BUILDREV)-$(FPMARCH).dmg tmpdmg
 endif
+
+rpm-scheduler: mig-scheduler
+	rm -rf tmp
+	$(INSTALL) -D -m 0755 $(BINDIR)/mig-scheduler tmp/usr/bin/mig-scheduler
+	$(INSTALL) -D -m 0640 conf/mig-scheduler.cfg.inc tmp/etc/mig/mig-scheduler.cfg
+	$(MKDIR) -p tmp/var/cache/mig
+	fpm -C tmp -n mig-scheduler --license GPL --vendor mozilla --description "Mozilla InvestiGator Scheduler" \
+		-m "Mozilla OpSec" --url http://mig.mozilla.org --architecture $(FPMARCH) -v $(BUILDREV) -s dir -t rpm .
+
+rpm-api: mig-api
+	rm -rf tmp
+	$(INSTALL) -D -m 0755 $(BINDIR)/mig-api tmp/usr/bin/mig-api
+	$(INSTALL) -D -m 0640 conf/mig-api.cfg.inc tmp/etc/mig/mig-api.cfg
+	$(MKDIR) -p tmp/var/cache/mig
+	fpm -C tmp -n mig-api --license GPL --vendor mozilla --description "Mozilla InvestiGator API" \
+		-m "Mozilla OpSec" --url http://mig.mozilla.org --architecture $(FPMARCH) -v $(BUILDREV) -s dir -t rpm .
 
 deb-server: mig-scheduler mig-api mig-runner worker-agent-intel worker-compliance-item
 	rm -rf tmp
